@@ -1,0 +1,74 @@
+"use client";
+
+import { AppHeader } from "@/components/AppHeader";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { useRequireAuth } from "@/lib/auth/useRequireAuth";
+import Link from "next/link";
+
+const SECTIONS = [
+  {
+    title: "Shopping",
+    tiles: [
+      { href: "/admin/products", title: "Products", description: "Import brands and products from Shopify, run enrichment." },
+      { href: "/admin/brands", title: "Brands", description: "Manage brands and settings." },
+      { href: "/admin/microstores", title: "Microstores", description: "Manage microstores and product curation." },
+    ],
+  },
+  {
+    title: "Fashion",
+    tiles: [
+      { href: "/admin/fashion-content", title: "Trends and Styling", description: "View trends and styling rules (used by Styling Agent and MicroStore)." },
+      { href: "/admin/styling-agent", title: "Styling Agent", description: "Agent goals, tone avatars, and suggested flows (improvement loop)." },
+      { href: "/admin/look-classification-tags", title: "Look classification tags", description: "Add, edit, or delete tags for classifying user looks (Look Analysis)." },
+      { href: "/admin/content", title: "Content", description: "Manage feed posts and content." },
+    ],
+  },
+  {
+    title: "Settings",
+    tiles: [
+      { href: "/admin/settings", title: "AI Model settings", description: "Choose which provider and model to use for each utility or agent." },
+    ],
+  },
+  {
+    title: "Testing",
+    tiles: [
+      { href: "/admin/styling-test", title: "Styling Agent testing", description: "Test Conversation API and Styling Agent (reply, looks, images, products, tips)." },
+    ],
+  },
+];
+
+export default function AdminPage() {
+  const { logout } = useAuth();
+  const { user, loading } = useRequireAuth("admin");
+
+  if (loading || !user) return null;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader title="Hanger Admin" user={user} onLogout={logout} />
+      <main className="max-w-4xl mx-auto p-8">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <p className="mt-1 text-gray-600">Choose an area to manage.</p>
+        <div className="mt-8 space-y-8">
+          {SECTIONS.map((section) => (
+            <section key={section.title}>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">{section.title}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {section.tiles.map((tile) => (
+                  <Link
+                    key={tile.href}
+                    href={tile.href}
+                    className="block p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition"
+                  >
+                    <h3 className="font-semibold text-gray-900">{tile.title}</h3>
+                    <p className="mt-1 text-sm text-gray-600">{tile.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
