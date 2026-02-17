@@ -27,12 +27,14 @@ const SECTIONS = [
     title: "Settings",
     tiles: [
       { href: "/admin/settings", title: "AI Model settings", description: "Choose which provider and model to use for each utility or agent." },
+      { href: "/admin/storage-test", title: "R2 / Image storage test", description: "Upload an image and verify storage (R2 or local) is working." },
     ],
   },
   {
     title: "Testing",
     tiles: [
       { href: "/admin/styling-test", title: "Styling Agent testing", description: "Test Conversation API and Styling Agent (reply, looks, images, products, tips)." },
+      { href: "/admin/search-test", title: "Search testing", description: "Test Search API: NL and image-based product search (query, imageUrl, results)." },
     ],
   },
 ];

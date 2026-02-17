@@ -9,7 +9,7 @@ import { useState } from "react";
 export default function LoginPage() {
   const { setToken } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError("");
     setSubmitting(true);
     try {
-      const res = await login(email, password);
+      const res = await login(username, password);
       setToken(res.token);
       if (res.user.role === "admin") router.replace("/admin");
       else if (res.user.role === "brand") router.replace("/brand");
@@ -37,11 +37,12 @@ export default function LoginPage() {
         <h1 className="text-xl font-semibold mb-4">Log in</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
               className="w-full border border-gray-300 rounded-lg px-3 py-2"
               required
             />

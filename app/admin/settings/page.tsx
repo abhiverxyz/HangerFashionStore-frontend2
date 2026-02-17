@@ -5,7 +5,14 @@ import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import Link from "next/link";
-import { getModelConfig, updateModelConfig, type ModelConfigMap } from "@/lib/api/admin";
+import {
+  getModelConfig,
+  updateModelConfig,
+  getStyleReportSettings,
+  updateStyleReportSettings,
+  type ModelConfigMap,
+  type StyleReportSettings,
+} from "@/lib/api/admin";
 
 const SCOPE_LABELS: Record<string, string> = {
   imageAnalysis: "Image analysis (vision)",
@@ -20,21 +27,26 @@ export default function AdminSettingsPage() {
   const { logout } = useAuth();
   const { user, loading: authLoading } = useRequireAuth("admin");
   const [config, setConfig] = useState<ModelConfigMap | null>(null);
+  const [styleReportSettings, setStyleReportSettings] = useState<StyleReportSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
+  const [styleReportSaving, setStyleReportSaving] = useState(false);
   const [edits, setEdits] = useState<Record<string, { provider: string; model: string }>>({});
+  const [styleReportEdits, setStyleReportEdits] = useState<{ minLooks: string; maxLooks: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-    getModelConfig()
-      .then((data) => {
+    Promise.all([getModelConfig(), getStyleReportSettings()])
+      .then(([modelData, styleData]) => {
         if (!cancelled) {
-          setConfig(data);
+          setConfig(modelData);
           setEdits({});
+          setStyleReportSettings(styleData);
+          setStyleReportEdits(null);
         }
       })
       .catch((err) => {
@@ -73,6 +85,29 @@ export default function AdminSettingsPage() {
       const current = { ...(config?.[scope] ?? {}), ...prev[scope] };
       return { ...prev, [scope]: { ...current, [field]: value } };
     });
+  };
+
+  const styleReportMin = styleReportEdits?.minLooks ?? String(styleReportSettings?.minLooks ?? 1);
+  const styleReportMax = styleReportEdits?.maxLooks ?? String(styleReportSettings?.maxLooks ?? 15);
+  const styleReportDirty =
+    styleReportSettings != null &&
+    (Number(styleReportEdits?.minLooks ?? styleReportSettings.minLooks) !== styleReportSettings.minLooks ||
+      Number(styleReportEdits?.maxLooks ?? styleReportSettings.maxLooks) !== styleReportSettings.maxLooks);
+
+  const handleSaveStyleReport = async () => {
+    const min = Math.max(1, Math.min(50, Math.floor(Number(styleReportMin) || 1)));
+    const max = Math.max(1, Math.min(50, Math.floor(Number(styleReportMax) || 15)));
+    setStyleReportSaving(true);
+    setError(null);
+    try {
+      const updated = await updateStyleReportSettings({ minLooks: min, maxLooks: max });
+      setStyleReportSettings(updated);
+      setStyleReportEdits(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save style report settings");
+    } finally {
+      setStyleReportSaving(false);
+    }
   };
 
   if (authLoading || !user) return null;
@@ -152,6 +187,61 @@ export default function AdminSettingsPage() {
             })}
           </div>
         )}
+
+        <section className="mt-10 pt-8 border-t border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Style report</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Minimum and maximum number of looks used when generating a style report. The agent always uses the latest looks in this range.
+          </p>
+          {!loading && (
+            <div className="mt-4 p-4 rounded-lg border border-gray-200 bg-white flex flex-wrap items-end gap-4">
+              <div className="min-w-[100px]">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Min looks</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={styleReportMin}
+                  onChange={(e) =>
+                    setStyleReportEdits((prev) => ({
+                      ...prev,
+                      minLooks: e.target.value,
+                      maxLooks: prev?.maxLooks ?? styleReportMax,
+                    }))
+                  }
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                />
+                <span className="text-xs text-gray-500">Minimum looks required to generate a report</span>
+              </div>
+              <div className="min-w-[100px]">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max looks</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={styleReportMax}
+                  onChange={(e) =>
+                    setStyleReportEdits((prev) => ({
+                      ...prev,
+                      maxLooks: e.target.value,
+                      minLooks: prev?.minLooks ?? styleReportMin,
+                    }))
+                  }
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                />
+                <span className="text-xs text-gray-500">Maximum latest looks used for the report</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveStyleReport}
+                disabled={!styleReportDirty || styleReportSaving}
+                className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {styleReportSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );

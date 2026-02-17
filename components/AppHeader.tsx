@@ -18,7 +18,7 @@ export function AppHeader({ title, user, onLogout }: AppHeaderProps) {
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <span className="text-sm text-gray-600">{user.email}</span>
+            <span className="text-sm text-gray-600">{user.username ?? user.email ?? user.id}</span>
             <button
               type="button"
               onClick={onLogout}

@@ -4,7 +4,8 @@ export type Role = "admin" | "brand" | "user";
 
 export interface User {
   id: string;
-  email: string;
+  email?: string;
+  username?: string;
   role: Role;
   brandId?: string;
   firstName?: string;

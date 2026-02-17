@@ -10,10 +10,10 @@ export interface SessionResponse {
   user: User;
 }
 
-export function login(email: string, password: string): Promise<LoginResponse> {
+export function login(username: string, password: string): Promise<LoginResponse> {
   return apiFetch("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   });
 }
 
