@@ -420,6 +420,12 @@ export interface MicrostoreSummary {
   createdAt?: string;
   publishedAt?: string | null;
   archivedAt?: string | null;
+  /** Optional; used on create/update and may be returned by API */
+  vibe?: string | null;
+  brandId?: string | null;
+  styleNotes?: string | null;
+  trends?: string | null;
+  categories?: string | null;
 }
 
 export function fetchMicrostores(params?: { brandId?: string; status?: string; limit?: number; offset?: number }): Promise<{ items: MicrostoreSummary[]; total: number }> {
