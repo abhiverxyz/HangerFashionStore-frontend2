@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { AppHeader } from "@/components/AppHeader";
-import { useAuth } from "@/lib/auth/AuthProvider";
-import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import Link from "next/link";
 import {
   getStorageStatus,
@@ -18,8 +15,6 @@ import { getStoredToken } from "@/lib/auth/storage";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002";
 
 export default function StorageTestPage() {
-  const { logout } = useAuth();
-  const { user, loading: authLoading } = useRequireAuth("admin");
   const [status, setStatus] = useState<StorageStatus | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -33,11 +28,10 @@ export default function StorageTestPage() {
   const previewBlobRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
     getStorageStatus()
       .then(setStatus)
       .catch((err) => setStatusError(err instanceof Error ? err.message : "Failed to load status"));
-  }, [user]);
+  }, []);
 
   // Load preview via proxy for R2 (bucket URL is not public-read); revoke previous blob URL
   useEffect(() => {
@@ -121,25 +115,21 @@ export default function StorageTestPage() {
           : `${API_BASE}${uploadResult.url}`
         : null;
 
-  if (authLoading || !user) return null;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader title="Hanger Admin" user={user} onLogout={logout} />
-      <main className="max-w-2xl mx-auto p-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-semibold">R2 / Image storage test</h1>
-        <p className="mt-2 text-gray-600">
+    <>
+      <div className="mb-6">
+        <Link href="/admin" className="text-sm text-neutral-600 hover:text-foreground">
+          ← Back to Dashboard
+        </Link>
+      </div>
+      <h1 className="text-2xl font-semibold">R2 / Image storage test</h1>
+        <p className="mt-2 text-neutral-600">
           Upload an image to check if storage (R2 or local) is working, then verify the stored URL is reachable.
         </p>
 
         {/* Storage status */}
-        <section className="mt-8 p-4 rounded-lg border border-gray-200 bg-white">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">Storage status</h2>
+        <section className="mt-8 p-4 rounded-soft-xl border border-border bg-card shadow-soft">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 mb-2">Storage status</h2>
           {statusError && (
             <p className="text-red-600 text-sm">{statusError}</p>
           )}
@@ -166,9 +156,9 @@ export default function StorageTestPage() {
         </section>
 
         {/* Upload */}
-        <section className="mt-8 p-4 rounded-lg border border-gray-200 bg-white">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">1. Upload image</h2>
-          <p className="text-sm text-gray-600 mb-3">Choose an image (JPEG, PNG, WebP, GIF). It will be stored under admin-test/.</p>
+        <section className="mt-8 p-4 rounded-soft-xl border border-border bg-card shadow-soft">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 mb-3">1. Upload image</h2>
+          <p className="text-sm text-neutral-600 mb-3">Choose an image (JPEG, PNG, WebP, GIF). It will be stored under admin-test/.</p>
           <div className="flex flex-wrap items-end gap-3">
             <input
               type="file"
@@ -180,13 +170,13 @@ export default function StorageTestPage() {
                 setUploadError(null);
                 setVerifyResult(null);
               }}
-              className="block text-sm text-gray-600 file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium"
+              className="block text-sm text-neutral-600 file:mr-2 file:rounded file:border-0 file:bg-neutral-100 file:px-3 file:py-2 file:text-sm file:font-medium"
             />
             <button
               type="button"
               onClick={handleUpload}
               disabled={!file || uploading}
-              className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded bg-primary-cta text-neutral-100 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? "Uploading…" : "Upload"}
             </button>
@@ -195,7 +185,7 @@ export default function StorageTestPage() {
             <p className="mt-3 text-red-600 text-sm" role="alert">{uploadError}</p>
           )}
           {uploadResult && (
-            <div className="mt-3 p-3 rounded bg-gray-50 text-sm space-y-1">
+            <div className="mt-3 p-3 rounded-soft-lg bg-neutral-100 text-sm space-y-1">
               <p><span className="font-medium">Storage:</span> {uploadResult.storageMode}</p>
               <p><span className="font-medium">Key:</span> {uploadResult.key}</p>
               <p><span className="font-medium">Size:</span> {uploadResult.size} bytes</p>
@@ -205,16 +195,16 @@ export default function StorageTestPage() {
         </section>
 
         {/* Test store (verify) */}
-        <section className="mt-8 p-4 rounded-lg border border-gray-200 bg-white">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">2. Test store</h2>
-          <p className="text-sm text-gray-600 mb-3">
+        <section className="mt-8 p-4 rounded-soft-xl border border-border bg-card shadow-soft">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 mb-3">2. Test store</h2>
+          <p className="text-sm text-neutral-600 mb-3">
             After uploading, click below to verify the stored file is reachable (backend fetches the URL).
           </p>
           <button
             type="button"
             onClick={handleVerify}
             disabled={!uploadResult?.url || verifying}
-            className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded bg-primary-cta text-neutral-100 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {verifying ? "Verifying…" : "Verify URL"}
           </button>
@@ -222,7 +212,7 @@ export default function StorageTestPage() {
             <p className="mt-3 text-red-600 text-sm" role="alert">{verifyError}</p>
           )}
           {verifyResult && (
-            <div className="mt-3 p-3 rounded bg-gray-50 text-sm space-y-1">
+            <div className="mt-3 p-3 rounded-soft-lg bg-neutral-100 text-sm space-y-1">
               <p>
                 <span className="font-medium">Reachable:</span>{" "}
                 {verifyResult.ok ? (
@@ -245,9 +235,9 @@ export default function StorageTestPage() {
         </section>
 
         {uploadResult?.url && (
-          <section className="mt-8 p-4 rounded-lg border border-gray-200 bg-white">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">Preview</h2>
-            <p className="text-sm text-gray-600 mb-2">
+          <section className="mt-8 p-4 rounded-soft-xl border border-border bg-card shadow-soft">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 mb-3">Preview</h2>
+            <p className="text-sm text-neutral-600 mb-2">
               {uploadResult.storageMode === "r2"
                 ? "R2: image loaded via proxy (bucket is not public-read)."
                 : "Local: image served from backend /uploads."}
@@ -256,14 +246,13 @@ export default function StorageTestPage() {
               <img
                 src={previewSrc}
                 alt="Uploaded"
-                className="max-w-full max-h-64 object-contain border border-gray-200 rounded"
+                className="max-w-full max-h-64 object-contain border border-border rounded"
               />
             ) : uploadResult.storageMode === "r2" ? (
               <p className="text-sm text-amber-600">Loading preview…</p>
             ) : null}
           </section>
         )}
-      </main>
-    </div>
+    </>
   );
 }

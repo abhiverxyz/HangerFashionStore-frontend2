@@ -9,6 +9,10 @@ export interface ConversationSummary {
   updatedAt: string;
 }
 
+export interface MessageMetadata {
+  avatarId?: string;
+}
+
 export interface MessageSummary {
   id: string;
   role: string;
@@ -18,7 +22,7 @@ export interface MessageSummary {
   flowType: string | null;
   flowContext: string | object | null;
   createdAt: string;
-  metadata?: object;
+  metadata?: MessageMetadata;
 }
 
 export interface ListConversationsResponse {
@@ -31,6 +35,7 @@ export interface SendMessageResponse {
   flowType?: string;
   flowContext?: FlowContext | null;
   messageId: string;
+  conversationTitle?: string;
 }
 
 export interface FlowContext {
@@ -71,10 +76,37 @@ export interface MakeupHairCard {
   text?: string;
 }
 
-export function createConversation(body?: { title?: string; metadata?: object }): Promise<ConversationSummary> {
+/**
+ * Parse flowContext from a message (may be stored as JSON string from API/DB).
+ */
+export function parseFlowContext(raw: string | object | null | undefined): FlowContext | null {
+  if (raw == null) return null;
+  if (typeof raw === "object") return raw as FlowContext;
+  try {
+    const parsed = JSON.parse(String(raw));
+    return typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Optional entry context for embedded flows (e.g. Concierge from Looks/diary/Find). */
+export interface CreateConversationBody {
+  title?: string;
+  metadata?: { entryPoint?: string; [k: string]: unknown };
+  source?: string;
+  prefillMessage?: string;
+}
+
+export function createConversation(body?: CreateConversationBody): Promise<ConversationSummary> {
+  const payload: Record<string, unknown> = {};
+  if (body?.title != null) payload.title = body.title;
+  if (body?.metadata != null) payload.metadata = body.metadata;
+  if (body?.source != null) payload.source = body.source;
+  if (body?.prefillMessage != null) payload.prefillMessage = body.prefillMessage;
   return apiFetchWithAuth<ConversationSummary>("/api/conversations", {
     method: "POST",
-    body: JSON.stringify(body ?? {}),
+    body: JSON.stringify(Object.keys(payload).length ? payload : {}),
   });
 }
 
@@ -90,15 +122,26 @@ export function getConversation(id: string, opts?: { includeMessages?: boolean }
   return apiFetchWithAuth(`/api/conversations/${encodeURIComponent(id)}`);
 }
 
+export function deleteConversation(id: string): Promise<void> {
+  return apiFetchWithAuth<void>(`/api/conversations/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
 export function sendMessage(
   conversationId: string,
-  payload: { message: string; imageUrl?: string; imageUrls?: string[] }
+  payload: { message: string; imageUrl?: string; imageUrls?: string[]; avatarId?: string | null; avatarSlug?: string | null }
 ): Promise<SendMessageResponse> {
-  const body: { message: string; imageUrl?: string; imageUrls?: string[] } = { message: payload.message.trim() };
+  const body: { message: string; imageUrl?: string; imageUrls?: string[]; avatarId?: string; avatarSlug?: string } = { message: payload.message.trim() };
   if (payload.imageUrls?.length) {
     body.imageUrls = payload.imageUrls;
   } else if (payload.imageUrl?.trim()) {
     body.imageUrl = payload.imageUrl.trim();
+  }
+  if (payload.avatarId != null && payload.avatarId.trim() !== "") {
+    body.avatarId = payload.avatarId.trim();
+  } else if (payload.avatarSlug != null && payload.avatarSlug.trim() !== "") {
+    body.avatarSlug = payload.avatarSlug.trim();
   }
   return apiFetchWithAuth<SendMessageResponse>(`/api/conversations/${encodeURIComponent(conversationId)}/messages`, {
     method: "POST",

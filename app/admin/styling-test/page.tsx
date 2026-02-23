@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AppHeader } from "@/components/AppHeader";
-import { useAuth } from "@/lib/auth/AuthProvider";
-import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import Link from "next/link";
 import {
   createConversation,
@@ -15,6 +12,8 @@ import {
   type TipCard,
   type MakeupHairCard,
 } from "@/lib/api/conversations";
+import { getImageDisplayUrl } from "@/lib/utils/imageUrl";
+import { useStorageAccessToken } from "@/lib/contexts/StorageAccessContext";
 
 function parseImageUrls(value: string): string[] {
   return value
@@ -24,8 +23,7 @@ function parseImageUrls(value: string): string[] {
 }
 
 export default function AdminStylingTestPage() {
-  const { logout } = useAuth();
-  const { user, loading: authLoading } = useRequireAuth("admin");
+  const accessToken = useStorageAccessToken();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [imageUrlsInput, setImageUrlsInput] = useState("");
@@ -79,8 +77,6 @@ export default function AdminStylingTestPage() {
     }
   };
 
-  if (authLoading || !user) return null;
-
   const flowContext = response?.flowContext as FlowContext | undefined | null;
   const hasCards = flowContext && (
     (flowContext.looks?.length ?? 0) > 0 ||
@@ -90,16 +86,14 @@ export default function AdminStylingTestPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader title="Hanger Admin" user={user} onLogout={logout} />
-      <main className="max-w-4xl mx-auto p-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-semibold">Styling Agent Test</h1>
-        <p className="mt-2 text-gray-600">
+    <>
+      <div className="mb-6">
+        <Link href="/admin" className="text-sm text-neutral-600 hover:text-foreground">
+          ← Back to Dashboard
+        </Link>
+      </div>
+      <h1 className="text-2xl font-semibold">Styling Agent Test</h1>
+        <p className="mt-2 text-neutral-600">
           Test the Conversation API and Styling Agent: send a message (and optional image URLs), then view reply and cards (looks, products, tips, makeup/hair).
         </p>
 
@@ -115,39 +109,39 @@ export default function AdminStylingTestPage() {
               <button
                 type="button"
                 onClick={handleCreateConversation}
-                className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium hover:bg-gray-800"
+                className="px-4 py-2 rounded bg-primary-cta text-neutral-100 text-sm font-medium hover:opacity-90"
               >
                 Start test conversation
               </button>
             </div>
           ) : (
             <>
-              <p className="text-sm text-gray-500">Conversation ID: {conversationId}</p>
+              <p className="text-sm text-neutral-500">Conversation ID: {conversationId}</p>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Message</label>
+                <label className="block text-sm font-medium text-neutral-700">Message</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="e.g. Suggest a casual weekend look"
                   rows={3}
-                  className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded border border-border px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Image URLs (optional, one per line or comma-separated)</label>
+                <label className="block text-sm font-medium text-neutral-700">Image URLs (optional, one per line or comma-separated)</label>
                 <textarea
                   value={imageUrlsInput}
                   onChange={(e) => setImageUrlsInput(e.target.value)}
                   placeholder="https://... or leave empty"
                   rows={2}
-                  className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm font-mono"
+                  className="mt-1 block w-full rounded border border-border px-3 py-2 text-sm font-mono"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleSend}
                 disabled={sending || !message.trim()}
-                className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded bg-primary-cta text-neutral-100 text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sending ? "Sending…" : "Send"}
               </button>
@@ -156,34 +150,34 @@ export default function AdminStylingTestPage() {
         </div>
 
         {response && (
-          <div className="mt-8 border-t border-gray-200 pt-8">
+          <div className="mt-8 border-t border-border pt-8">
             <h2 className="text-lg font-semibold">Response</h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-neutral-600">
               <span className="font-medium">flowType:</span> {response.flowType ?? "—"}
             </p>
             <div className="mt-3">
-              <span className="font-medium text-gray-700">Reply:</span>
-              <p className="mt-1 text-gray-800 whitespace-pre-wrap">{response.reply}</p>
+              <span className="font-medium text-neutral-700">Reply:</span>
+              <p className="mt-1 text-neutral-800 whitespace-pre-wrap">{response.reply}</p>
             </div>
 
             {hasCards && flowContext && (
               <div className="mt-6 space-y-6">
                 {flowContext.looks && flowContext.looks.length > 0 && (
                   <div>
-                    <h3 className="font-medium text-gray-800">Looks</h3>
+                    <h3 className="font-medium text-neutral-800">Looks</h3>
                     <div className="mt-2 space-y-4">
                       {(flowContext.looks as LookCard[]).map((look, i) => (
-                        <div key={i} className="rounded border border-gray-200 bg-white p-4">
-                          <span className="text-xs text-gray-500">
+                        <div key={i} className="rounded border border-border bg-card p-4">
+                          <span className="text-xs text-neutral-500">
                             {look.lookImageStyle === "on_model" ? "Styled on model" : look.lookImageStyle === "flat_lay" ? "Flat lay" : look.lookImageStyle ?? "—"}
                           </span>
-                          {look.vibe && <p className="text-sm text-gray-600">Vibe: {look.vibe}</p>}
-                          {look.occasion && <p className="text-sm text-gray-600">Occasion: {look.occasion}</p>}
+                          {look.vibe && <p className="text-sm text-neutral-600">Vibe: {look.vibe}</p>}
+                          {look.occasion && <p className="text-sm text-neutral-600">Occasion: {look.occasion}</p>}
                           {look.imageUrl && (
-                            <img src={look.imageUrl} alt="Look" className="mt-2 max-h-64 object-contain rounded" />
+                            <img src={getImageDisplayUrl(look.imageUrl, accessToken)!} alt="Look" className="mt-2 max-h-64 object-contain rounded" />
                           )}
                           {look.products && look.products.length > 0 && (
-                            <p className="mt-2 text-sm text-gray-500">
+                            <p className="mt-2 text-sm text-neutral-500">
                               Products: {look.products.map((p) => p.title || p.id).join(", ")}
                             </p>
                           )}
@@ -194,15 +188,15 @@ export default function AdminStylingTestPage() {
                 )}
                 {flowContext.products && flowContext.products.length > 0 && (
                   <div>
-                    <h3 className="font-medium text-gray-800">Products</h3>
+                    <h3 className="font-medium text-neutral-800">Products</h3>
                     <ul className="mt-2 space-y-2">
                       {(flowContext.products as ProductCard[]).map((p) => (
-                        <li key={p.id} className="flex items-center gap-3 rounded border border-gray-200 bg-white p-2">
+                        <li key={p.id} className="flex items-center gap-3 rounded border border-border bg-card p-2">
                           {p.imageUrl && (
-                            <img src={p.imageUrl} alt="" className="h-12 w-12 object-cover rounded" />
+                            <img src={getImageDisplayUrl(p.imageUrl, accessToken)} alt="" className="h-12 w-12 object-cover rounded" />
                           )}
                           <span className="text-sm">{p.title ?? p.id}</span>
-                          {p.brandName && <span className="text-xs text-gray-500">{p.brandName}</span>}
+                          {p.brandName && <span className="text-xs text-neutral-500">{p.brandName}</span>}
                         </li>
                       ))}
                     </ul>
@@ -210,10 +204,10 @@ export default function AdminStylingTestPage() {
                 )}
                 {flowContext.tips && flowContext.tips.length > 0 && (
                   <div>
-                    <h3 className="font-medium text-gray-800">Tips</h3>
+                    <h3 className="font-medium text-neutral-800">Tips</h3>
                     <ul className="mt-2 space-y-2">
                       {(flowContext.tips as TipCard[]).map((t, i) => (
-                        <li key={i} className="rounded border border-gray-200 bg-white p-2 text-sm">
+                        <li key={i} className="rounded border border-border bg-card p-2 text-sm">
                           {t.title && <span className="font-medium">{t.title}</span>}
                           {(t.description ?? t.body) && ` — ${t.description ?? t.body}`}
                         </li>
@@ -223,11 +217,11 @@ export default function AdminStylingTestPage() {
                 )}
                 {flowContext.makeupHair && flowContext.makeupHair.length > 0 && (
                   <div>
-                    <h3 className="font-medium text-gray-800">Makeup / Hair</h3>
+                    <h3 className="font-medium text-neutral-800">Makeup / Hair</h3>
                     <ul className="mt-2 space-y-2">
                       {(flowContext.makeupHair as MakeupHairCard[]).map((m, i) => (
-                        <li key={i} className="rounded border border-gray-200 bg-white p-2 text-sm">
-                          <span className="text-gray-500">{m.type}:</span> {m.title ?? m.text ?? "—"}
+                        <li key={i} className="rounded border border-border bg-card p-2 text-sm">
+                          <span className="text-neutral-500">{m.type}:</span> {m.title ?? m.text ?? "—"}
                         </li>
                       ))}
                     </ul>
@@ -240,19 +234,18 @@ export default function AdminStylingTestPage() {
               <button
                 type="button"
                 onClick={() => setShowRawJson((v) => !v)}
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-neutral-600 hover:text-foreground"
               >
                 {showRawJson ? "Hide" : "Show"} raw JSON
               </button>
               {showRawJson && (
-                <pre className="mt-2 p-3 rounded bg-gray-100 text-xs overflow-auto max-h-96">
+                <pre className="mt-2 p-3 rounded bg-neutral-100 text-xs overflow-auto max-h-96">
                   {JSON.stringify(response, null, 2)}
                 </pre>
               )}
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </>
   );
 }

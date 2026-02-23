@@ -256,8 +256,12 @@ export interface StylingAvatar {
   slug: string;
   description: string | null;
   systemPromptAddition: string;
+  defaultGreeting: string | null;
+  goalsAddition: string | null;
+  preferencesOverride: string | null;
   sortOrder: number;
   isDefault: boolean;
+  imageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -289,12 +293,29 @@ export function setDefaultStylingAvatar(avatarId: string): Promise<StylingAvatar
 
 export function updateStylingAvatar(
   idOrSlug: string,
-  data: Partial<Pick<StylingAvatar, "name" | "slug" | "description" | "systemPromptAddition" | "sortOrder" | "isDefault">>
+  data: Partial<Pick<StylingAvatar, "name" | "slug" | "description" | "systemPromptAddition" | "defaultGreeting" | "goalsAddition" | "preferencesOverride" | "sortOrder" | "isDefault" | "imageUrl">>
 ): Promise<StylingAvatar> {
   return apiFetchWithAuth<StylingAvatar>(`/api/admin/styling-avatars/${encodeURIComponent(idOrSlug)}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
+}
+
+const _adminApiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002";
+export async function uploadStylingAvatarImage(idOrSlug: string, file: File): Promise<StylingAvatar> {
+  const token = getStoredToken();
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${_adminApiBase}/api/admin/styling-avatars/${encodeURIComponent(idOrSlug)}/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error((err as { error?: string }).error || "Upload failed");
+  }
+  return res.json();
 }
 
 export function fetchStylingPlaybook(params?: { type?: string; isActive?: boolean }): Promise<StylingPlaybookEntry[]> {

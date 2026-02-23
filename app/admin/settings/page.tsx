@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
-import { useAuth } from "@/lib/auth/AuthProvider";
-import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import Link from "next/link";
 import {
   getModelConfig,
@@ -24,8 +21,6 @@ const SCOPE_LABELS: Record<string, string> = {
 const SCOPES = ["imageAnalysis", "llm", "embed", "imageGeneration"];
 
 export default function AdminSettingsPage() {
-  const { logout } = useAuth();
-  const { user, loading: authLoading } = useRequireAuth("admin");
   const [config, setConfig] = useState<ModelConfigMap | null>(null);
   const [styleReportSettings, setStyleReportSettings] = useState<StyleReportSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +31,6 @@ export default function AdminSettingsPage() {
   const [styleReportEdits, setStyleReportEdits] = useState<{ minLooks: string; maxLooks: string } | null>(null);
 
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -58,7 +52,7 @@ export default function AdminSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, []);
 
   const handleSave = async (scope: string) => {
     const e = edits[scope] ?? config?.[scope];
@@ -110,30 +104,26 @@ export default function AdminSettingsPage() {
     }
   };
 
-  if (authLoading || !user) return null;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader title="Hanger Admin" user={user} onLogout={logout} />
-      <main className="max-w-4xl mx-auto p-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to Dashboard
-          </Link>
-        </div>
-        <h1 className="text-2xl font-semibold">AI / Model settings</h1>
-        <p className="mt-2 text-gray-600">
-          Choose which provider and model to use for each utility. Changes are stored in the database and override env defaults.
-        </p>
+    <>
+      <div className="mb-6">
+        <Link href="/admin" className="text-sm text-neutral-600 hover:text-foreground">
+          ← Back to Dashboard
+        </Link>
+      </div>
+      <h1 className="text-2xl font-semibold">AI / Model settings</h1>
+      <p className="mt-2 text-neutral-600">
+        Choose which provider and model to use for each utility. Changes are stored in the database and override env defaults.
+      </p>
 
-        {error && (
+      {error && (
           <div className="mt-4 p-3 rounded bg-red-50 text-red-800 text-sm" role="alert">
             {error}
           </div>
         )}
 
         {loading ? (
-          <p className="mt-6 text-gray-500">Loading…</p>
+          <p className="mt-6 text-neutral-500">Loading…</p>
         ) : (
           <div className="mt-6 space-y-4">
             {SCOPES.map((scope) => {
@@ -146,31 +136,31 @@ export default function AdminSettingsPage() {
               return (
                 <div
                   key={scope}
-                  className="p-4 rounded-lg border border-gray-200 bg-white flex flex-wrap items-end gap-4"
+                  className="p-4 rounded-soft-xl border border-border200 bg-card flex flex-wrap items-end gap-4"
                 >
                   <div className="min-w-[180px]">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       {SCOPE_LABELS[scope] ?? scope}
                     </label>
-                    <span className="text-xs text-gray-500">{scope}</span>
+                    <span className="text-xs text-neutral-500">{scope}</span>
                   </div>
                   <div className="flex-1 min-w-[120px]">
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Provider</label>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">Provider</label>
                     <input
                       type="text"
                       value={current.provider}
                       onChange={(e) => setEdit(scope, "provider", e.target.value)}
-                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      className="w-full rounded border border-border300 px-3 py-2 text-sm"
                       placeholder="e.g. openai, flux"
                     />
                   </div>
                   <div className="flex-1 min-w-[200px]">
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Model</label>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">Model</label>
                     <input
                       type="text"
                       value={current.model}
                       onChange={(e) => setEdit(scope, "model", e.target.value)}
-                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                      className="w-full rounded border border-border300 px-3 py-2 text-sm"
                       placeholder="e.g. gpt-4o-mini"
                     />
                   </div>
@@ -178,7 +168,7 @@ export default function AdminSettingsPage() {
                     type="button"
                     onClick={() => handleSave(scope)}
                     disabled={!isDirty || isSaving}
-                    className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 rounded bg-primary-cta text-neutral-100 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSaving ? "Saving…" : "Save"}
                   </button>
@@ -188,15 +178,15 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
-        <section className="mt-10 pt-8 border-t border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Style report</h2>
-          <p className="mt-1 text-sm text-gray-600">
+        <section className="mt-10 pt-8 border-t border-border200">
+          <h2 className="text-lg font-semibold text-neutral-900">Style report</h2>
+          <p className="mt-1 text-sm text-neutral-600">
             Minimum and maximum number of looks used when generating a style report. The agent always uses the latest looks in this range.
           </p>
           {!loading && (
-            <div className="mt-4 p-4 rounded-lg border border-gray-200 bg-white flex flex-wrap items-end gap-4">
+            <div className="mt-4 p-4 rounded-soft-xl border border-border200 bg-card flex flex-wrap items-end gap-4">
               <div className="min-w-[100px]">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Min looks</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Min looks</label>
                 <input
                   type="number"
                   min={1}
@@ -209,12 +199,12 @@ export default function AdminSettingsPage() {
                       maxLooks: prev?.maxLooks ?? styleReportMax,
                     }))
                   }
-                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded border border-border300 px-3 py-2 text-sm"
                 />
-                <span className="text-xs text-gray-500">Minimum looks required to generate a report</span>
+                <span className="text-xs text-neutral-500">Minimum looks required to generate a report</span>
               </div>
               <div className="min-w-[100px]">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max looks</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Max looks</label>
                 <input
                   type="number"
                   min={1}
@@ -227,22 +217,21 @@ export default function AdminSettingsPage() {
                       minLooks: prev?.minLooks ?? styleReportMin,
                     }))
                   }
-                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded border border-border300 px-3 py-2 text-sm"
                 />
-                <span className="text-xs text-gray-500">Maximum latest looks used for the report</span>
+                <span className="text-xs text-neutral-500">Maximum latest looks used for the report</span>
               </div>
               <button
                 type="button"
                 onClick={handleSaveStyleReport}
                 disabled={!styleReportDirty || styleReportSaving}
-                className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded bg-primary-cta text-neutral-100 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {styleReportSaving ? "Saving…" : "Save"}
               </button>
             </div>
           )}
         </section>
-      </main>
-    </div>
+    </>
   );
 }

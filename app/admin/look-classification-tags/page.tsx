@@ -1,9 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
-import { useAuth } from "@/lib/auth/AuthProvider";
-import { useRequireAuth } from "@/lib/auth/useRequireAuth";
 import Link from "next/link";
 import {
   fetchLookClassificationTags,
@@ -15,8 +12,6 @@ import {
 import type { LookClassificationTagItem } from "@/lib/api/admin";
 
 export default function AdminLookClassificationTagsPage() {
-  const { logout } = useAuth();
-  const { user, loading: authLoading } = useRequireAuth("admin");
   const [tags, setTags] = useState<LookClassificationTagItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -51,10 +46,9 @@ export default function AdminLookClassificationTagsPage() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
     setLoading(true);
     load();
-  }, [user, load]);
+  }, [load]);
 
   const handleSeed = async () => {
     setSeedLoading(true);
@@ -141,25 +135,21 @@ export default function AdminLookClassificationTagsPage() {
     }
   };
 
-  if (authLoading || !user) return null;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader title="Hanger Admin" user={user} onLogout={logout} />
-      <main className="max-w-4xl mx-auto p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin" className="text-gray-600 hover:text-gray-900">
+    <>
+      <div className="flex items-center gap-4 mb-6">
+          <Link href="/admin" className="text-neutral-600 hover:text-foreground">
             ← Dashboard
           </Link>
           <h1 className="text-2xl font-semibold">Look classification tags</h1>
         </div>
-        <p className="text-gray-600 mb-6">
+        <p className="text-neutral-600 mb-6">
           Tags used to classify user-submitted looks (e.g. casual, work, party). Used by Look Analysis. Add, edit, or
           delete; seed loads defaults when the list is empty.
         </p>
 
         {error && (
-          <div className="mb-4 p-3 rounded bg-red-50 text-red-800 text-sm">{error}</div>
+          <div className="mb-4 p-3 rounded-soft-lg bg-red-50 text-red-800 text-sm">{error}</div>
         )}
 
         <div className="mb-6 flex flex-wrap gap-3">
@@ -167,12 +157,12 @@ export default function AdminLookClassificationTagsPage() {
             type="button"
             onClick={handleSeed}
             disabled={seedLoading || total > 0}
-            className="px-4 py-2 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-soft-lg border border-border bg-card text-sm font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {seedLoading ? "Seeding…" : "Seed default tags"}
           </button>
           {total > 0 && (
-            <span className="text-sm text-gray-500 self-center">({total} tags; seed only when empty)</span>
+            <span className="text-sm text-neutral-500 self-center">({total} tags; seed only when empty)</span>
           )}
         </div>
 
@@ -180,48 +170,48 @@ export default function AdminLookClassificationTagsPage() {
           <h2 className="text-lg font-medium mb-3">Add tag</h2>
           <form onSubmit={handleAdd} className="flex flex-wrap gap-3 items-end">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Name (slug)</label>
+              <label className="block text-xs text-neutral-500 mb-1">Name (slug)</label>
               <input
                 type="text"
                 value={addName}
                 onChange={(e) => setAddName(e.target.value)}
                 placeholder="e.g. smart-casual"
-                className="border border-gray-300 rounded px-3 py-2 text-sm w-40"
+                className="border border-border rounded-soft-lg px-3 py-2 text-sm w-40"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Label</label>
+              <label className="block text-xs text-neutral-500 mb-1">Label</label>
               <input
                 type="text"
                 value={addLabel}
                 onChange={(e) => setAddLabel(e.target.value)}
                 placeholder="e.g. Smart Casual"
-                className="border border-gray-300 rounded px-3 py-2 text-sm w-40"
+                className="border border-border rounded-soft-lg px-3 py-2 text-sm w-40"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Description</label>
+              <label className="block text-xs text-neutral-500 mb-1">Description</label>
               <input
                 type="text"
                 value={addDescription}
                 onChange={(e) => setAddDescription(e.target.value)}
                 placeholder="Optional"
-                className="border border-gray-300 rounded px-3 py-2 text-sm w-48"
+                className="border border-border rounded-soft-lg px-3 py-2 text-sm w-48"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Sort order</label>
+              <label className="block text-xs text-neutral-500 mb-1">Sort order</label>
               <input
                 type="number"
                 value={addSortOrder}
                 onChange={(e) => setAddSortOrder(Number(e.target.value) || 0)}
-                className="border border-gray-300 rounded px-3 py-2 text-sm w-20"
+                className="border border-border rounded-soft-lg px-3 py-2 text-sm w-20"
               />
             </div>
             <button
               type="submit"
               disabled={addLoading}
-              className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+              className="px-4 py-2 rounded-soft-lg bg-primary-cta text-neutral-100 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
               {addLoading ? "Adding…" : "Add"}
             </button>
@@ -232,64 +222,64 @@ export default function AdminLookClassificationTagsPage() {
         <section>
           <h2 className="text-lg font-medium mb-3">Tags ({total})</h2>
           {loading ? (
-            <p className="text-gray-500">Loading…</p>
+            <p className="text-neutral-500">Loading…</p>
           ) : tags.length === 0 ? (
-            <p className="text-gray-500">No tags yet. Click “Seed default tags” to add defaults.</p>
+            <p className="text-neutral-500">No tags yet. Click “Seed default tags” to add defaults.</p>
           ) : (
-            <ul className="border border-gray-200 rounded-lg divide-y divide-gray-200 bg-white">
+            <ul className="border border-border rounded-soft-xl divide-y divide-border bg-card">
               {tags.map((tag) => (
                 <li key={tag.id} className="p-4 flex flex-wrap items-center gap-3">
                   {editingId === tag.id ? (
                     <>
-                      <span className="font-mono text-sm text-gray-500 w-32">{tag.name}</span>
+                      <span className="font-mono text-sm text-neutral-500 w-32">{tag.name}</span>
                       <input
                         type="text"
                         value={editLabel}
                         onChange={(e) => setEditLabel(e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm w-36"
+                        className="border border-border rounded-soft-lg px-2 py-1 text-sm w-36"
                         placeholder="Label"
                       />
                       <input
                         type="text"
                         value={editDescription}
                         onChange={(e) => setEditDescription(e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm flex-1 min-w-[120px]"
+                        className="border border-border rounded-soft-lg px-2 py-1 text-sm flex-1 min-w-[120px]"
                         placeholder="Description"
                       />
                       <input
                         type="number"
                         value={editSortOrder}
                         onChange={(e) => setEditSortOrder(Number(e.target.value) || 0)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm w-16"
+                        className="border border-border rounded-soft-lg px-2 py-1 text-sm w-16"
                       />
                       <button
                         type="button"
                         onClick={handleSaveEdit}
                         disabled={saveLoading}
-                        className="px-3 py-1 rounded bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-50"
+                        className="px-3 py-1 rounded-soft-lg bg-primary-cta text-neutral-100 text-sm hover:opacity-90 disabled:opacity-50"
                       >
                         {saveLoading ? "Saving…" : "Save"}
                       </button>
                       <button
                         type="button"
                         onClick={cancelEdit}
-                        className="px-3 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50"
+                        className="px-3 py-1 rounded-soft-lg border border-border text-sm hover:bg-neutral-100"
                       >
                         Cancel
                       </button>
                     </>
                   ) : (
                     <>
-                      <span className="font-mono text-sm text-gray-500 w-32">{tag.name}</span>
+                      <span className="font-mono text-sm text-neutral-500 w-32">{tag.name}</span>
                       <span className="font-medium w-36">{tag.label}</span>
-                      <span className="text-gray-500 text-sm flex-1 min-w-0 truncate">
+                      <span className="text-neutral-500 text-sm flex-1 min-w-0 truncate">
                         {tag.description || "—"}
                       </span>
-                      <span className="text-gray-400 text-sm w-8">{tag.sortOrder}</span>
+                      <span className="text-neutral-400 text-sm w-8">{tag.sortOrder}</span>
                       <button
                         type="button"
                         onClick={() => startEdit(tag)}
-                        className="px-2 py-1 rounded border border-gray-300 text-sm hover:bg-gray-50"
+                        className="px-2 py-1 rounded-soft-lg border border-border text-sm hover:bg-neutral-100"
                       >
                         Edit
                       </button>
@@ -297,7 +287,7 @@ export default function AdminLookClassificationTagsPage() {
                         type="button"
                         onClick={() => handleDelete(tag.id)}
                         disabled={deleteLoading === tag.id}
-                        className="px-2 py-1 rounded border border-red-200 text-red-700 text-sm hover:bg-red-50 disabled:opacity-50"
+                        className="px-2 py-1 rounded-soft-lg border border-red-200 text-red-700 text-sm hover:bg-red-50 disabled:opacity-50"
                       >
                         {deleteLoading === tag.id ? "Deleting…" : "Delete"}
                       </button>
@@ -308,7 +298,6 @@ export default function AdminLookClassificationTagsPage() {
             </ul>
           )}
         </section>
-      </main>
-    </div>
+    </>
   );
 }
