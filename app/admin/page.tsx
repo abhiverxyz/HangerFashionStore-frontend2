@@ -9,6 +9,7 @@ const SECTIONS = [
       { href: "/admin/products", title: "Products", description: "Import brands and products from Shopify, run enrichment." },
       { href: "/admin/brands", title: "Brands", description: "Manage brands and settings." },
       { href: "/admin/microstores", title: "Microstores", description: "Manage microstores and product curation." },
+      { href: "/admin/wardrobe", title: "Wardrobe store", description: "Manage elements that drive the per-user Store for you (creation context, curation rules)." },
     ],
   },
   {
@@ -18,6 +19,12 @@ const SECTIONS = [
       { href: "/admin/styling-agent", title: "Styling Agent", description: "Agent goals, tone avatars, and suggested flows (improvement loop)." },
       { href: "/admin/look-classification-tags", title: "Look classification tags", description: "Add, edit, or delete tags for classifying user looks (Look Analysis)." },
       { href: "/admin/content", title: "Content", description: "Manage feed posts and content." },
+    ],
+  },
+  {
+    title: "Agents and Prompts",
+    tiles: [
+      { href: "/admin/agents-prompts/microstore-curation", title: "Microstore Curation Agent", description: "View and edit prompts and references used in microstore creation (name, style notes, cover, coherence)." },
     ],
   },
   {

@@ -33,7 +33,8 @@ export function getImageDisplayUrl(
   const u = imageUrl.trim();
   if (!u) return "";
   if (!isOurStorageUrl(u)) return u;
-  const encoded = encodeURIComponent(u.startsWith("http") ? u : `${API_BASE}${u.startsWith("/") ? "" : "/"}${u}`);
+  // Backend urlToStorageKey expects relative "/uploads/..." or R2 full URL; pass URL as-is so relative stays relative
+  const encoded = encodeURIComponent(u);
   let out = `${API_BASE}/api/storage/access?url=${encoded}`;
   if (accessToken) out += `&access_token=${encodeURIComponent(accessToken)}`;
   else if (!isPublicStorageKey(u)) return ""; // private storage without token → show placeholder

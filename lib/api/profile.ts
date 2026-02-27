@@ -35,6 +35,8 @@ export interface UserProfile {
   fashionMotivation: UserProfileNeed;
   quiz: UserProfileQuiz;
   summary?: UserProfileSummary;
+  personalInsight?: string | null;
+  personalInsightUpdatedAt?: string | null;
 }
 
 /** GET /api/profile — combined user profile (style, need, motivation, quiz). Auth required. */

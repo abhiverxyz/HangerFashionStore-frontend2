@@ -22,6 +22,8 @@ export interface Look {
 }
 
 export interface LookDataParsed {
+  shortTitle?: string | null;
+  shortSummary?: string | null;
   comment?: string | null;
   vibe?: string | null;
   occasion?: string | null;

@@ -1,6 +1,8 @@
 import { getStoredToken } from "@/lib/auth/storage";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002";
+/** Base URL for API and storage (used by apiFetch and by resolveMicrostoreCoverUrl). */
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002";
+const BASE = API_BASE_URL;
 
 export async function apiFetch<T>(
   path: string,

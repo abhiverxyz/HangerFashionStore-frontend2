@@ -487,6 +487,20 @@ export function deleteMicrostore(id: string): Promise<void> {
   return apiFetchWithAuth(`/api/admin/microstores/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
+export type BulkMicrostoreAction = "archive" | "publish" | "delete";
+
+export interface BulkMicrostoresResult {
+  successCount: number;
+  errors: { id: string; error: string }[];
+}
+
+export function bulkMicrostores(action: BulkMicrostoreAction, ids: string[]): Promise<BulkMicrostoresResult> {
+  return apiFetchWithAuth<BulkMicrostoresResult>("/api/admin/microstores/bulk", {
+    method: "POST",
+    body: JSON.stringify({ action, ids }),
+  });
+}
+
 export function setMicrostoreVisibility(id: string, body: { scope: string; visibilityUserId?: string; userIds?: string[] }): Promise<MicrostoreSummary> {
   return apiFetchWithAuth<MicrostoreSummary>(`/api/admin/microstores/${encodeURIComponent(id)}/visibility`, { method: "PUT", body: JSON.stringify(body) });
 }
@@ -509,6 +523,50 @@ export function createSystemMicrostoresBatch(count?: number): Promise<{ accepted
 
 export function runSystemMicrostoresBatch(count?: number): Promise<{ created: number; stores: unknown[]; errors: { message: string }[] }> {
   return apiFetchWithAuth("/api/admin/microstores/run-system-batch", { method: "POST", body: JSON.stringify({ count: count ?? 5 }) });
+}
+
+// ---------- Allowed microstore creators ----------
+
+export interface AllowedMicrostoreCreatorItem {
+  id: string;
+  userId: string;
+  createdAt: string;
+  user?: { id: string; username: string | null; email: string | null; firstName: string | null; lastName: string | null };
+}
+
+export function fetchAllowedMicrostoreCreators(params?: { limit?: number; offset?: number }): Promise<{ items: AllowedMicrostoreCreatorItem[]; total: number }> {
+  const qs = new URLSearchParams();
+  if (params?.limit != null) qs.set("limit", String(params.limit));
+  if (params?.offset != null) qs.set("offset", String(params.offset));
+  const query = qs.toString();
+  return apiFetchWithAuth(`/api/admin/microstore-allowed-creators${query ? `?${query}` : ""}`);
+}
+
+export function addAllowedMicrostoreCreator(body: { userId?: string; username?: string }): Promise<{ id: string; userId: string }> {
+  return apiFetchWithAuth("/api/admin/microstore-allowed-creators", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function removeAllowedMicrostoreCreator(userId: string): Promise<{ removed: boolean }> {
+  return apiFetchWithAuth(`/api/admin/microstore-allowed-creators?userId=${encodeURIComponent(userId)}`, { method: "DELETE" });
+}
+
+// ---------- Store for you construct (Wardrobe) ----------
+
+export interface StoreForYouConstruct {
+  id: string;
+  startingImageUrl: string | null;
+  bannerImageUrl: string | null;
+  styleNotesTemplate: string | null;
+  productSelectionRules: string | null;
+  updatedAt: string;
+}
+
+export function fetchStoreForYouConstruct(): Promise<StoreForYouConstruct> {
+  return apiFetchWithAuth<StoreForYouConstruct>("/api/admin/store-for-you-construct");
+}
+
+export function updateStoreForYouConstruct(body: Partial<Pick<StoreForYouConstruct, "startingImageUrl" | "bannerImageUrl" | "styleNotesTemplate" | "productSelectionRules">>): Promise<StoreForYouConstruct> {
+  return apiFetchWithAuth<StoreForYouConstruct>("/api/admin/store-for-you-construct", { method: "PUT", body: JSON.stringify(body) });
 }
 
 // ---------- B6 MicroStore Creation Context ----------
@@ -630,5 +688,28 @@ export function storageTestVerify(url: string): Promise<StorageTestVerifyResult>
   return apiFetchWithAuth<StorageTestVerifyResult>("/api/admin/storage-test/verify", {
     method: "POST",
     body: JSON.stringify({ url }),
+  });
+}
+
+// ---------- Agents & Prompts ----------
+
+export interface AgentPromptItem {
+  promptKey: string;
+  content: string;
+  references: string[];
+}
+
+export function fetchAgentPrompts(agentId: string): Promise<{ agentId: string; prompts: AgentPromptItem[] }> {
+  return apiFetchWithAuth<{ agentId: string; prompts: AgentPromptItem[] }>(`/api/admin/agents/${encodeURIComponent(agentId)}/prompts`);
+}
+
+export function updateAgentPrompt(
+  agentId: string,
+  promptKey: string,
+  body: { content: string; references: string[] }
+): Promise<{ agentId: string; promptKey: string; content: string; references: string[] }> {
+  return apiFetchWithAuth(`/api/admin/agents/${encodeURIComponent(agentId)}/prompts/${encodeURIComponent(promptKey)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
   });
 }

@@ -42,11 +42,10 @@ function StoresIcon({ className }: { className?: string }) {
   );
 }
 
-function LooksIcon({ className }: { className?: string }) {
+function StylezoneIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
+      <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9" />
     </svg>
   );
 }
@@ -59,11 +58,10 @@ function ClosetIcon({ className }: { className?: string }) {
   );
 }
 
-function EditIcon({ className }: { className?: string }) {
+function ConciergeIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V17a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
@@ -81,9 +79,9 @@ const mainNavItems = [
   { href: "/browse", label: "Find", icon: FindIcon },
   { href: "/brands", label: "Brands", icon: BrandIcon },
   { href: "/microstores", label: "Stores", icon: StoresIcon },
-  { href: "/looks", label: "Looks", icon: LooksIcon },
+  { href: "/looks", label: "Stylezone", icon: StylezoneIcon },
   { href: "/wardrobe", label: "Closet", icon: ClosetIcon },
-  { href: "/feed", label: "Edit", icon: EditIcon },
+  { href: "/concierge", label: "Concierge", icon: ConciergeIcon },
 ];
 
 export function AppHeader({ user, onLogout, title = "Hanger", logoHref = "/browse" }: AppHeaderProps) {

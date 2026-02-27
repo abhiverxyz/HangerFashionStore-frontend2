@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import useSWR from "swr";
-import { getMicrostore, followMicrostore, unfollowMicrostore } from "@/lib/api/microstores";
+import { getMicrostore, followMicrostore, unfollowMicrostore, resolveMicrostoreCoverUrl } from "@/lib/api/microstores";
+import { StyleNoteCard } from "@/components/StyleNoteCard";
 import { ProductTile } from "@/components/ProductTile";
 import { ProductQuickViewModal } from "@/components/ProductQuickViewModal";
 import { useWishlist } from "@/lib/contexts/WishlistContext";
@@ -20,8 +20,17 @@ export default function MicrostoreDetailPage() {
   const [followed, setFollowed] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [coverError, setCoverError] = useState(false);
   const wishlist = useWishlist();
   const cart = useCart();
+  const styleNotesCarouselRef = useRef<HTMLDivElement>(null);
+  const scrollStyleNotes = useCallback((direction: 1 | -1) => {
+    const el = styleNotesCarouselRef.current;
+    if (!el) return;
+    const firstCard = el.querySelector("[data-style-note-card]");
+    const cardWidth = firstCard ? (firstCard as HTMLElement).offsetWidth + 12 : 272; // gap-3 = 12
+    el.scrollBy({ left: direction * cardWidth, behavior: "smooth" });
+  }, []);
 
   const handleFollow = async () => {
     setFollowLoading(true);
@@ -49,14 +58,60 @@ export default function MicrostoreDetailPage() {
   });
   const sections = data.sections ?? [];
 
+  type StyleNoteItem = { title: string; description?: string; url?: string; imageUrl?: string; backgroundColor?: string; fontStyle?: string };
+  let styleNotesRaw = (data as { styleNotes?: unknown }).styleNotes;
+  if (typeof styleNotesRaw === "string") {
+    try {
+      styleNotesRaw = JSON.parse(styleNotesRaw as string) as unknown;
+    } catch {
+      styleNotesRaw = (styleNotesRaw as string).trim() ? { text: (styleNotesRaw as string).trim() } : null;
+    }
+  }
+  const styleNoteItems: StyleNoteItem[] = (() => {
+    const pickImageUrl = (o: Record<string, unknown>): string | undefined => {
+      const u = o.imageUrl ?? o.referenceImageUrl ?? o.image;
+      return typeof u === "string" && u.trim() ? u.trim() : undefined;
+    };
+    const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v.trim() : undefined);
+    const one = (item: Record<string, unknown>) => ({
+      title: str(item.title) ?? str(item.text) ?? "Style tip",
+      description: str(item.description) ?? (str(item.text) && !str(item.title) ? str(item.text) : undefined),
+      url: str(item.url),
+      imageUrl: pickImageUrl(item),
+      backgroundColor: str(item.backgroundColor),
+      fontStyle: str(item.fontStyle),
+    });
+    if (!styleNotesRaw || typeof styleNotesRaw !== "object") return [];
+    if (Array.isArray(styleNotesRaw)) {
+      return styleNotesRaw
+        .filter((n) => (n as Record<string, unknown>).title !== "__STYLE_NOTE_STYLE__")
+        .map((n) => one(n as Record<string, unknown>));
+    }
+    const obj = styleNotesRaw as Record<string, unknown>;
+    const links = obj.links;
+    if (Array.isArray(links) && links.length > 0) {
+      return links
+        .filter((l) => (l as Record<string, unknown>).title !== "__STYLE_NOTE_STYLE__")
+        .map((l) => one(l as Record<string, unknown>));
+    }
+    const text = str(obj.text);
+    if (text) return [{ title: "Style note", description: text }];
+    return [];
+  })();
+
   return (
     <div className="space-y-6">
       <div className="rounded-soft-xl border border-border bg-card overflow-hidden">
-        {data.coverImageUrl && (
-          <div className="aspect-[21/9] bg-neutral-100">
-            <img src={data.coverImageUrl} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
+        {(() => {
+          const coverSrc = resolveMicrostoreCoverUrl(data.coverImageUrl);
+          const showPlaceholder = !coverSrc || coverError;
+          if (showPlaceholder) return <div className="aspect-[21/9] bg-neutral-200 flex items-center justify-center text-neutral-500 text-sm">No cover</div>;
+          return (
+            <div className="aspect-[21/9] bg-neutral-100">
+              <img src={coverSrc} alt="" className="w-full h-full object-cover" onError={() => setCoverError(true)} />
+            </div>
+          );
+        })()}
         <div className="p-4 md:p-6 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -75,12 +130,6 @@ export default function MicrostoreDetailPage() {
             </button>
           </div>
           {data.description && <p className="text-neutral-600">{data.description}</p>}
-          {data.styleNotes && typeof data.styleNotes === "object" && (
-            <div className="text-sm text-neutral-600">
-              <span className="font-medium">Style notes: </span>
-              {JSON.stringify(data.styleNotes)}
-            </div>
-          )}
           {(data as { followerCount?: number }).followerCount != null && (
             <p className="text-xs text-neutral-500">
               {(data as { followerCount: number }).followerCount} followers
@@ -88,6 +137,44 @@ export default function MicrostoreDetailPage() {
           )}
         </div>
       </div>
+
+      {styleNoteItems.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-medium text-foreground">Style notes</h2>
+          <div className="relative flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollStyleNotes(-1)}
+              className="shrink-0 w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+              aria-label="Previous style note"
+            >
+              <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <div
+              ref={styleNotesCarouselRef}
+              className="flex gap-3 overflow-x-auto pb-2 -mx-1 scroll-smooth snap-x snap-mandatory flex-1 min-w-0"
+            >
+              {styleNoteItems.map((item, i) => (
+                <StyleNoteCard
+                  key={i}
+                  item={item}
+                  className="snap-start"
+                  wide
+                  resolveImageUrl={(url) => resolveMicrostoreCoverUrl(url) || url}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => scrollStyleNotes(1)}
+              className="shrink-0 w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+              aria-label="Next style note"
+            >
+              <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </section>
+      )}
 
       {sections.length > 0 ? (
         <div className="space-y-6">
