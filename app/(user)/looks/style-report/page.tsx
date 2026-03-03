@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import useSWR from "swr";
 import { listLooks } from "@/lib/api/looks";
 import { StyleReportSection } from "@/components/looks/StyleReportSection";
@@ -10,11 +9,12 @@ export default function StyleReportPage() {
   const lookCount = looksData?.total ?? 0;
 
   return (
-    <div className="space-y-6">
-      <Link href="/looks" className="text-sm font-medium text-primary hover:underline">
-        ← Back to Looks
-      </Link>
-      <StyleReportSection lookCount={lookCount} />
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="mx-auto w-full max-w-lg px-4 sm:px-6 py-6">
+          <StyleReportSection lookCount={lookCount} />
+        </div>
+      </div>
     </div>
   );
 }

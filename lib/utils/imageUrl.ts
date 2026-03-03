@@ -2,7 +2,8 @@
  * Resolve image URL for display. Our storage (R2 or /uploads) goes through the access endpoint
  * so the backend can return a presigned or local URL after permission check.
  */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002";
+const DEFAULT_API_BASE = "http://localhost:3002";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE;
 
 function isOurStorageUrl(url: string): boolean {
   if (!url || typeof url !== "string") return false;
@@ -13,9 +14,9 @@ function isOurStorageUrl(url: string): boolean {
   return false;
 }
 
-/** Public keys (e.g. admin-test/*) don't require auth; can load without access token. */
+/** Public keys (e.g. admin-test/*, generated/*) don't require auth; can load without access token. */
 function isPublicStorageKey(url: string): boolean {
-  return url.includes("admin-test/");
+  return url.includes("admin-test/") || url.includes("generated/");
 }
 
 /**

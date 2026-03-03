@@ -8,6 +8,7 @@ import { getStyleReportIfExists } from "@/lib/api/styleReport";
 import type { StyleReportData } from "@/lib/types/styleReport";
 import { getImageDisplayUrl } from "@/lib/utils/imageUrl";
 import { useStorageAccessToken } from "@/hooks/useStorageAccessToken";
+import { CARD_TEXTURE } from "@/lib/constants/cardStyles";
 
 /** Column 1: pink. Column 2: yellow, orange. Column 3: purple. Same 135deg, 3-stop structure. */
 const CARD_GRADIENTS = {
@@ -16,7 +17,6 @@ const CARD_GRADIENTS = {
   howDoILook: "linear-gradient(135deg, #ffedd5 0%, #fed7aa 50%, #fdba74 100%)",    // col 2: orange
   styleReport: "linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 50%, #d8b4fe 100%)",    // col 3: purple
 } as const;
-const CARD_TEXTURE = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")`;
 
 /** Shared typography: titles and descriptors consistent across all cards, dark grey for legibility. */
 const CARD_TITLE_CLASS = "font-display text-lg font-medium text-neutral-800";

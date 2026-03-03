@@ -31,6 +31,7 @@ const SECTIONS = [
     title: "Settings",
     tiles: [
       { href: "/admin/settings", title: "AI Model settings", description: "Choose which provider and model to use for each utility or agent." },
+      { href: "/admin/style-report", title: "Style report settings", description: "Configure min/max looks, agent objective, and which cards appear in the style report and their order." },
       { href: "/admin/storage-test", title: "R2 / Image storage test", description: "Upload an image and verify storage (R2 or local) is working." },
     ],
   },

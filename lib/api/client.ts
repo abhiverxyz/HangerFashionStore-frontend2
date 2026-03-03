@@ -1,8 +1,16 @@
 import { getStoredToken } from "@/lib/auth/storage";
 
+const DEFAULT_API_BASE = "http://localhost:3002";
+
 /** Base URL for API and storage (used by apiFetch and by resolveMicrostoreCoverUrl). */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE;
 const BASE = API_BASE_URL;
+
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production" && API_BASE_URL === DEFAULT_API_BASE) {
+  console.warn(
+    "[HangerFashionStore] NEXT_PUBLIC_API_BASE_URL is unset; using default. Set it in production for correct API and image URLs."
+  );
+}
 
 export async function apiFetch<T>(
   path: string,
